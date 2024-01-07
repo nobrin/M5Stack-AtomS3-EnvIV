@@ -1,0 +1,9 @@
+ssid=
+pass=
+ble=0
+endpoint=
+port=8883
+devname=M5Stack
+devcert=/M5Stack.crt
+devkey=/M5Stack.key
+topic=M5Stack/EnvIV

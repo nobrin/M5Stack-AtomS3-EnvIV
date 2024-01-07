@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BLE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    button { width: 45%; border: none; border-radius: 5px; font-size: xx-large; }
+    #cmdStart { background-color: royalblue; color: white; }
+    #cmdStart:disabled { background-color: lightgray; color: gray; }
+    table { font-size: xx-large; }
+    table td.val { text-align: right; color: royalblue; background-color: ghostwhite; }
+</style>
+</head>
+<body>
+<h2>M5Stack AtomS3 EnvIV<br>BLE Test</h2>
+
+<table style="margin-left:auto;margin-right:auto">
+  <tr><th>温度</th><td class="val" id="txtTemp">---</td><td>&deg;C</td></tr>
+  <tr><th>湿度</th><td class="val" id="txtHm">---</td><td>%</td></tr>
+  <tr><th>気圧</th><td class="val" id="txtAtm">---</td><td>hPa</td></tr>
+</table>
+
+<div id="txtMsg">&nbsp;</div>
+<div id="txtErr" style="color:coral"></div>
+
+<hr>
+<div style="text-align:center">
+    <button id="cmdStart">開始</button>
+    <button id="cmdEnd" disabled>終了</button>
+</div>
+<script>
+(() => {
+    const SERVICE_UUID          = "21c134bf-dd8b-44f5-9966-8829f720a556";
+    const CHARACTERISTIC_UUID   = "95e1977b-fd27-4587-9d5e-f2a56352a177";
+
+    let device = null;
+
+    function showValues(buf) {
+        const seq = buf[3];
+        const data = new Uint16Array(buf.slice(4, 10));
+        document.querySelector("#txtTemp").textContent = data[0] / 100;
+        document.querySelector("#txtHm").textContent = data[1] / 100;
+        document.querySelector("#txtAtm").textContent = data[2] / 10;
+    }
+
+    async function connectDevice() {
+        // デバイスに接続する
+        this.disabled = true;
+        document.querySelector("#txtMsg").textContent = "デバイスペアリング中…";
+        try {
+            device = await navigator.bluetooth.requestDevice({
+        //        acceptAllDevices: true,       // 全てのデバイスを表示する場合
+                filters: [{name: "m5stack"}],   // デバイス名を変更しているときはここを変更
+                optionalServices: [SERVICE_UUID],
+            });
+        }catch(e){
+            alert("キャンセルされました");
+            this.disabled = false;
+            document.querySelector("#txtMsg").textContent = "キャンセルされました。";
+        }
+        console.debug(device);
+        document.querySelector("#txtMsg").textContent = "接続中…";
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+        console.debug(characteristic);
+
+        // 接続時のデータを読む
+        const dataview = await characteristic.readValue();
+        showValues(dataview.buffer);
+
+        // Notifyへのリスナを追加
+        characteristic.addEventListener("characteristicvaluechanged", evt => {
+            const characteristic = evt.target;
+            showValues(characteristic.value.buffer);
+        });
+        characteristic.startNotifications();
+
+        document.querySelector("#cmdEnd").disabled = false;
+        document.querySelector("#txtMsg").textContent = "接続しました。";
+
+        try{
+            // 書き込みテスト
+            // Android14のChrome120では
+            //   NotSupportedError: GATT operation failed for unknown reason.
+            // というエラーが出る
+            const msg = "HELLO!!";
+            const arr = new Uint8Array([].map.call(msg, c => c.charCodeAt(0)));
+            await characteristic.writeValue(arr.buffer);
+            console.debug("Wrote message.");
+        }catch(e){
+            document.querySelector("#txtErr").textContent = e;
+        }
+    }
+
+    function disconnectDevice() {
+        // デバイスの切断
+        this.disabled = true;
+        document.querySelector("#txtErr").textContent = "";
+        document.querySelector("#txtMsg").textContent = "切断中…";
+        document.querySelector("#cmdStart").disabled = false;
+        device.gatt.disconnect();
+        console.debug("DISCONNECT");
+        document.querySelector("#txtMsg").textContent = "切断しました。";
+    }
+
+    document.querySelector("#cmdStart").addEventListener("click", connectDevice);
+    document.querySelector("#cmdEnd").addEventListener("click", disconnectDevice);
+})();
+</script>
+</body>
+</html>
