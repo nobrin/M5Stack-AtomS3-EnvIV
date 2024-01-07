@@ -48,6 +48,8 @@ BLEアドバタイズではデバイス名 `m5stack` でブロードキャスト
 
 GATT通信を行うことができます。接続した場合、1秒に1回程度の割合で現在の測定データが通知されます。
 
+HTMLによるクライアントサンプルは https://nobrin.github.io/M5Stack-AtomS3-EnvIV/ble.html です。BLEデバイス名 `m5stack` に接続できます。ChromeまたはEdgeでお試しください。
+
 
 ## 制限事項
 
