@@ -1,5 +1,5 @@
 // BLE初期化
-#include <BLEServer.h>
+#include <NimBLEDevice.h>
 
 void initAdvertising(BLEServer *pServer);
 void startService(BLEServer *pServer,

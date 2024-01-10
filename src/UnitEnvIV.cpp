@@ -12,7 +12,7 @@ void Measurement::appendInt(std::string *data, uint16_t value) {
 std::string Measurement::getBLEData(uint8_t seq) {
   // BLEで送信するためのデータフレームを作成する
   std::string s = "";
-  s += (char)0xff;   // AD type 0xFF: Manufacturer specific data
+//  s += (char)0xff;   // AD type 0xFF: Manufacturer specific data (NimBLEでは不要)
   s += (char)0xff;   // Test manufacturer ID low byte
   s += (char)0xff;   // Test manufacturer ID high byte
   s += (char)seq;  // シーケンス番号

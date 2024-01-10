@@ -37,8 +37,8 @@
     let device = null;
 
     function showValues(buf) {
-        const seq = buf[3];
-        const data = new Uint16Array(buf.slice(4, 10));
+        const seq = buf[2];
+        const data = new Uint16Array(buf.slice(3, 9));
         document.querySelector("#txtTemp").textContent = data[0] / 100;
         document.querySelector("#txtHm").textContent = data[1] / 100;
         document.querySelector("#txtAtm").textContent = data[2] / 10;

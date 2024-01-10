@@ -7,8 +7,7 @@
 #include <Wire.h>
 #include <M5Unified.h>
 
-#include <BLEDevice.h>
-#include <BLEServer.h>
+#include <NimBLEDevice.h>
 #include <MQTT.h>
 #include <Ticker.h>
 #include <base64.hpp>

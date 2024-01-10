@@ -1,7 +1,5 @@
 // BLE初期化
-#include <BLEServer.h>
-#include <BLEAdvertising.h>
-#include <BLE2902.h>
+#include <NimBLEDevice.h>
 #include "ble.h"
 
 void initAdvertising(BLEServer *pServer) {
@@ -20,20 +18,26 @@ void startService(BLEServer *pServer, BLEUUID serviceUUID, BLEUUID chrUUID,
   BLEService *pService = pServer->createService(serviceUUID);
   BLECharacteristic *pCharacteristic;
   pCharacteristic = pService->createCharacteristic(chrUUID,
+                                                  /* AruduinoBLE用
                                                    BLECharacteristic::PROPERTY_READ |
                                                    BLECharacteristic::PROPERTY_WRITE |
                                                    BLECharacteristic::PROPERTY_NOTIFY |
                                                    BLECharacteristic::PROPERTY_INDICATE);
+                                                   */
+                                                   NIMBLE_PROPERTY::READ |
+                                                   NIMBLE_PROPERTY::WRITE |
+                                                   NIMBLE_PROPERTY::NOTIFY |
+                                                   NIMBLE_PROPERTY::INDICATE);
+
   pCharacteristic->setCallbacks(chrCallbacks);
-  pCharacteristic->addDescriptor(new BLE2902());
+//  pCharacteristic->addDescriptor(new BLE2902());  // NimBLEでは不要
   pService->start();
 }
 
 void updateAdvertisementData(BLEServer *pServer, std::string *data) {
-  // 環境情報をセットする
-  BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
-  oAdvertisementData.setFlags(0x06);
-  *data = (char)data->length() + *data; // 先頭に長さを追加
-  oAdvertisementData.addData(*data);
-  pServer->getAdvertising()->setAdvertisementData(oAdvertisementData);
+  // 環境情報をセットする(NimBLE用)
+  BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  pAdvertising->setManufacturerData(*data);
+  pAdvertising->stop();
+  pAdvertising->start();
 }
